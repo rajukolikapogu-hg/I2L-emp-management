@@ -75,3 +75,22 @@ docs/OPERATIONS.md   deployment, permissions, backup/restore, data correction
 See [`docs/OPERATIONS.md`](docs/OPERATIONS.md). In short: run it on one host, reachable only from a
 trusted local network (the admin credentials are fixed), with a unique `SESSION_SECRET` and
 daily backups of the SQLite file.
+
+## Pull requests
+
+`.github/workflows/auto-merge.yml` turns on squash auto-merge for every non-draft PR into `main`
+opened from a branch in this repository (not forks). It re-reads the PR before acting and turns
+auto-merge off again if the PR is retargeted away from `main` or converted to a draft. The workflow
+itself checks nothing else. What holds the merge back is the `protect-main` ruleset in the repository settings, which requires:
+
+- the `checks` and `e2e` status checks to pass, and
+- at least one approving review, with no outstanding "changes requested" review.
+
+CodeRabbit (`.coderabbit.yaml`) requests changes when it finds issues. It approves once its
+comment threads are resolved and it has reviewed the latest commit. That approval is usually the
+one that satisfies the ruleset, but any approval from someone with write access counts.
+
+The ruleset does **not** require resolved conversations. It also does not dismiss an approval when
+new commits are pushed: an earlier approval keeps counting for later commits unless a new
+"changes requested" review blocks them. To remove
+auto-merge from a PR, run `gh pr merge --disable-auto <number>`.
