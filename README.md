@@ -79,8 +79,9 @@ daily backups of the SQLite file.
 ## Pull requests
 
 `.github/workflows/auto-merge.yml` turns on squash auto-merge for every non-draft PR into `main`
-opened from a branch in this repository (not forks). The workflow itself checks nothing else. What
-holds the merge back is the `protect-main` ruleset in the repository settings, which requires:
+opened from a branch in this repository (not forks). It re-reads the PR before acting and turns
+auto-merge off again if the PR is retargeted away from `main` or converted to a draft. The workflow
+itself checks nothing else. What holds the merge back is the `protect-main` ruleset in the repository settings, which requires:
 
 - the `checks` and `e2e` status checks to pass, and
 - at least one approving review, with no outstanding "changes requested" review.
