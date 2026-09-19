@@ -21,3 +21,5 @@ playwright-report/
 
 # TestSprite scratch output (plans, test code and reports in testsprite_tests/ stay tracked)
 testsprite_tests/tmp/
+__pycache__/
+testsprite_tests/tmp/config.json

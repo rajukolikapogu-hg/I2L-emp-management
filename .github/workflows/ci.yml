@@ -57,16 +57,19 @@ jobs:
           retention-days: 7
 
   # Merge gate for CLAUDE.md "Automation testing (TestSprite)": a PR that changes src/ or
-  # prisma/ must also update the committed TestSprite report under testsprite_tests/.
+  # prisma/ must also update the committed TestSprite report, and that report must show
+  # every test case as passed.
   testsprite-report:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      REPORT: testsprite_tests/testsprite-mcp-test-report.md
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Require an updated TestSprite report for app changes
+      - name: Require an updated, all-passing TestSprite report for app changes
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
@@ -74,15 +77,27 @@ jobs:
           changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
           echo "Changed files:"; echo "$changed" | sed 's/^/  /'
 
-          app_changes=$(grep -E '^(src|prisma)/' <<<"$changed" || true)
-          report_changes=$(grep -E '^testsprite_tests/' <<<"$changed" | grep -v '^testsprite_tests/tmp/' || true)
-
-          if [ -z "$app_changes" ]; then
+          if ! grep -qE '^(src|prisma)/' <<<"$changed"; then
             echo "No changes under src/ or prisma/; TestSprite report not required."
             exit 0
           fi
-          if [ -z "$report_changes" ]; then
-            echo "::error::This PR changes src/ or prisma/ but does not update testsprite_tests/. Run TestSprite as described in CLAUDE.md and commit the report."
+          if ! grep -qxF "$REPORT" <<<"$changed"; then
+            echo "::error file=$REPORT::This PR changes src/ or prisma/ but does not update $REPORT. Run TestSprite as described in CLAUDE.md and commit the report."
             exit 1
           fi
-          echo "TestSprite files updated:"; echo "$report_changes" | sed 's/^/  /'
+
+          # Each test case in the report has a line like "- **Status:** ✅ Passed"
+          # (other values: "❌ Failed", "⚠️ Partial").
+          statuses=$(grep -E '^- \*\*Status:\*\*' "$REPORT" || true)
+          total=$(grep -c . <<<"$statuses" || true)
+          passed=$(grep -cE 'Status:\*\* ✅ Passed' <<<"$statuses" || true)
+          echo "TestSprite report: $passed of $total test cases passed."
+          if [ "$total" -eq 0 ]; then
+            echo "::error file=$REPORT::No test case statuses found in $REPORT."
+            exit 1
+          fi
+          if [ "$passed" -ne "$total" ]; then
+            echo "::error file=$REPORT::$((total - passed)) TestSprite test case(s) did not pass:"
+            awk '/^#### Test/ { t = $0 } /^- \*\*Status:\*\*/ && !/✅ Passed/ { print "  " t " -> " $0 }' "$REPORT"
+            exit 1
+          fi
