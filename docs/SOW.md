@@ -1,12 +1,12 @@
 # Statement of Work
 
-**Project:** Emp-management
+**Project:** Employee Management
 **Application type:** B2E · Internal
 **Prepared from:** Budget estimate (Blueprint v0.7)
 **Scope basis:** Full approved scope
 
 ## 1. Overview
-Emp-management is a deliberately tiny single-admin internal tool for tracking monthly salary payments, built as one Next.js app over a local SQLite file. Because the scope is small, predictable, and integration-free, it can be delivered in roughly 3 weeks end-to-end; the modest cost drivers are the create-only/idempotent data rules and getting the monthly paid/unpaid flow correct, not scale or security infrastructure.
+Employee Management is a deliberately tiny single-admin internal tool for tracking monthly salary payments, built as one Next.js app over a local SQLite file. Because the scope is small, predictable, and integration-free, it can be delivered in roughly 3 weeks end-to-end; the modest cost drivers are the create-only/idempotent data rules and getting the monthly paid/unpaid flow correct, not scale or security infrastructure.
 
 ## 2. Scope of Work
 The following deliverables are included in this engagement:

@@ -1,6 +1,6 @@
 # Operations Guide
 
-How to deploy, secure, back up, and correct data in Emp-management. This covers the
+How to deploy, secure, back up, and correct data in Employee Management. This covers the
 Sprint 2 hardening deliverables: restricted database permissions, backup guidance,
 and deployment to a single host.
 
@@ -26,7 +26,7 @@ To keep it running, use a process manager. Example systemd unit (`/etc/systemd/s
 
 ```ini
 [Unit]
-Description=Emp-management
+Description=Employee Management
 After=network.target
 
 [Service]

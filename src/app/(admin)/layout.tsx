@@ -12,7 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-6">
-            <span className="font-semibold">Emp-management</span>
+            <span className="font-semibold">Employee Management</span>
             <nav aria-label="Main" className="flex gap-1">
               <NavLink href="/monthly">Monthly view</NavLink>
               <NavLink href="/employees">Employees</NavLink>

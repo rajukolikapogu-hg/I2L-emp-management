@@ -1,4 +1,4 @@
-// Emp-management data model.
+// Employee Management data model.
 // Employees and payments are create-only: the migration installs SQLite triggers
 // that abort any UPDATE or DELETE on these tables (EMP-3, EMP-4, EMP-5, HIST-3).
 

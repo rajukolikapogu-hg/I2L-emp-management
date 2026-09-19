@@ -1,6 +1,6 @@
 # Acceptance Criteria
 
-Emp-management
+Employee Management
 
 **Requirements covered:** 25/25
 **Acceptance criteria:** 38

@@ -7,7 +7,7 @@ import { listEmployees } from "@/server/employees";
 import { paymentsForMonth } from "@/server/payments";
 import { MarkPaidForm } from "./MarkPaidForm";
 
-export const metadata = { title: "Monthly view · Emp-management" };
+export const metadata = { title: "Monthly view · Employee Management" };
 
 // Lists every employee with their paid/unpaid status for the current month (MON-1).
 // Deliberately shows no totals or summary metrics (MON-5).

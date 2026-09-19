@@ -1,8 +1,8 @@
 # Test Plan
 
-Emp-management
+Employee Management
 
-QA strategy for Emp-management, a single-admin internal Next.js/SQLite salary-tracking tool. Testing centers on the three real risk areas the TDD flags: server-side authorization behind hardcoded credentials, immutability of employee records and payments, and idempotent per-employee-per-month payment recording backed by a unique DB constraint. Because scale is tiny and there are no external integrations, the suite prioritizes correctness of the data model, session enforcement, and month-boundary/idempotency logic over performance or load.
+QA strategy for Employee Management, a single-admin internal Next.js/SQLite salary-tracking tool. Testing centers on the three real risk areas the TDD flags: server-side authorization behind hardcoded credentials, immutability of employee records and payments, and idempotent per-employee-per-month payment recording backed by a unique DB constraint. Because scale is tiny and there are no external integrations, the suite prioritizes correctness of the data model, session enforcement, and month-boundary/idempotency logic over performance or load.
 
 ## Strategy
 
