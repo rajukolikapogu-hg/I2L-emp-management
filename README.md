@@ -78,6 +78,18 @@ daily backups of the SQLite file.
 
 ## Pull requests
 
-PRs into `main` merge automatically (squash) once CodeRabbit has approved and the required
-`checks` and `e2e` jobs pass. If CodeRabbit requests changes, push a fix and resolve its
-comment threads; it re-reviews and approves. Draft PRs and PRs from forks are not auto-merged.
+`.github/workflows/auto-merge.yml` turns on squash auto-merge for every non-draft PR into `main`
+opened from a branch in this repository (not forks). The workflow itself checks nothing else. What
+holds the merge back is the `protect-main` ruleset in the repository settings, which requires:
+
+- the `checks` and `e2e` status checks to pass, and
+- at least one approving review, with no outstanding "changes requested" review.
+
+CodeRabbit (`.coderabbit.yaml`) requests changes when it finds issues. It approves once its
+comment threads are resolved and it has reviewed the latest commit. That approval is usually the
+one that satisfies the ruleset, but any approval from someone with write access counts.
+
+The ruleset does **not** require resolved conversations. It also does not dismiss an approval when
+new commits are pushed: an earlier approval keeps counting for later commits unless a new
+"changes requested" review blocks them. To remove
+auto-merge from a PR, run `gh pr merge --disable-auto <number>`.
