@@ -1,0 +1,45 @@
+// Emp-management data model.
+// Employees and payments are create-only: the migration installs SQLite triggers
+// that abort any UPDATE or DELETE on these tables (EMP-3, EMP-4, EMP-5, HIST-3).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id          Int       @id @default(autoincrement())
+  name        String
+  designation String
+  /// Calendar date, stored as YYYY-MM-DD to avoid timezone shifts.
+  dateOfBirth String
+  /// Fixed salary in minor units (cents). Never modified after creation.
+  salaryCents Int
+  createdAt   DateTime  @default(now())
+  payments    Payment[]
+}
+
+model Payment {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  /// Calendar month in server timezone, formatted YYYY-MM.
+  periodMonth  String
+  /// Salary amount copied from the employee at the time of payment, in cents.
+  amountCents  Int
+  /// Calendar date the salary was paid, stored as YYYY-MM-DD.
+  paymentDate  String
+  createdAt    DateTime @default(now())
+
+  @@unique([employeeId, periodMonth])
+}
+
+model Session {
+  id        String   @id
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}

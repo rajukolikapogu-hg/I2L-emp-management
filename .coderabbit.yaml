@@ -1,0 +1,18 @@
+language: en-US
+reviews:
+  profile: assertive
+  request_changes_workflow: true
+  high_level_summary: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches: ["main"]
+  path_instructions:
+    - path: "src/**"
+      instructions: >
+        Employees and payments must stay create/read only. Every server action
+        must call requireAdmin(). Payments must stay unique per employee per month.
+    - path: "prisma/migrations/**"
+      instructions: "Flag any change that removes the immutability triggers or the unique payment index."
+chat:
+  auto_reply: true
