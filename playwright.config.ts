@@ -22,6 +22,7 @@ export default defineConfig({
     env: {
       DATABASE_URL: `file:${e2eDb}`,
       SESSION_SECRET: "e2e-secret-e2e-secret-e2e-secret-012345",
+      COOKIE_SECURE: "false",
     },
   },
 });

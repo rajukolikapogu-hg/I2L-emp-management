@@ -148,6 +148,7 @@ test.describe("accessibility", () => {
     await context.clearCookies();
     await page.goto("/login");
     const results = await new AxeBuilder({ page }).analyze();
-    expect(results.violations.filter((v) => v.impact === "critical")).toEqual([]);
+    const loginSerious = results.violations.filter((v) => ["critical", "serious"].includes(v.impact ?? ""));
+    expect(loginSerious, `/login: ${loginSerious.map((v) => v.id).join(", ")}`).toEqual([]);
   });
 });

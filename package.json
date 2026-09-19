@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm run db:migrate && next dev",
     "build": "prisma generate && next build",
-    "start": "npm run db:migrate && next start",
+    "start": "npm run db:migrate && next start -H ${BIND_HOST:-127.0.0.1}",
     "db:migrate": "prisma migrate deploy && node scripts/secure-db.mjs",
     "db:secure": "node scripts/secure-db.mjs",
     "typecheck": "tsc --noEmit",

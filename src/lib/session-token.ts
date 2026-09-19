@@ -4,16 +4,22 @@
 export const SESSION_COOKIE = "emp_session";
 export const SESSION_TTL_SECONDS = 12 * 60 * 60;
 
-const DEV_FALLBACK_SECRET = "dev-only-insecure-secret-change-me-0000";
+export const MIN_SECRET_LENGTH = 32;
 const encoder = new TextEncoder();
+
+// Only generated in test/development when SESSION_SECRET is unset. It lives for the
+// life of the process, so no usable signing key is ever committed to the repository.
+let ephemeralSecret: string | null = null;
 
 function getSecret(): string {
   const secret = process.env.SESSION_SECRET;
-  if (secret && secret.length >= 32) return secret;
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("SESSION_SECRET must be set to at least 32 characters in production.");
+  if (secret && secret.length >= MIN_SECRET_LENGTH) return secret;
+  const env = process.env.NODE_ENV;
+  if (!secret && (env === "test" || env === "development")) {
+    ephemeralSecret ??= toBase64Url(crypto.getRandomValues(new Uint8Array(32)));
+    return ephemeralSecret;
   }
-  return DEV_FALLBACK_SECRET;
+  throw new Error(`SESSION_SECRET must be set to at least ${MIN_SECRET_LENGTH} characters.`);
 }
 
 let cachedKey: { secret: string; key: Promise<CryptoKey> } | null = null;
@@ -41,7 +47,15 @@ function toBase64Url(bytes: Uint8Array): string {
 
 function fromBase64Url(value: string): Uint8Array<ArrayBuffer> | null {
   if (!/^[A-Za-z0-9_-]+$/.test(value)) return null;
-  const binary = atob(value.replace(/-/g, "+").replace(/_/g, "/"));
+  // A remainder of 1 can never be produced by base64 encoding.
+  if (value.length % 4 === 1) return null;
+  const padded = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  let binary: string;
+  try {
+    binary = atob(padded);
+  } catch {
+    return null;
+  }
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return bytes;

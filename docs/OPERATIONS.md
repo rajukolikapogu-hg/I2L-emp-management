@@ -16,7 +16,7 @@ cp .env.example .env
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 npm run build
-npm start            # applies migrations, restricts DB permissions, then serves on :3000
+npm start            # applies migrations, restricts DB permissions, then serves on 127.0.0.1:3000
 ```
 
 `npm start` runs `prisma migrate deploy` and `scripts/secure-db.mjs` on every launch, so the
@@ -33,7 +33,8 @@ After=network.target
 User=empapp
 WorkingDirectory=/opt/emp-management
 Environment=NODE_ENV=production
-Environment=HOSTNAME=127.0.0.1
+Environment=BIND_HOST=127.0.0.1
+Environment=COOKIE_SECURE=false
 Environment=PORT=3000
 UMask=0077
 ExecStart=/usr/bin/npm start
@@ -48,15 +49,17 @@ WantedBy=multi-user.target
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | yes | SQLite file, e.g. `file:../data/emp.db` (relative paths resolve from `prisma/`). |
-| `SESSION_SECRET` | yes in production | Signs the session cookie. At least 32 characters. Changing it logs the admin out. |
-| `COOKIE_SECURE` | no | Set to `true` only when served over HTTPS. |
+| `SESSION_SECRET` | yes (except `NODE_ENV=test`/`development`) | Signs the session cookie. At least 32 characters. Changing it logs the admin out. In test/development, if unset, a random key is generated per process (sessions do not survive a restart). |
+| `COOKIE_SECURE` | yes in production | Exactly `true` or `false`. Missing or any other value stops the server at startup (fail closed). Use `true` when served over HTTPS. |
+| `BIND_HOST` | no | Interface `npm start` binds to (`next start -H`). Defaults to `127.0.0.1`. Set a LAN IP to serve a trusted local network. Must be set in the process environment (e.g. the systemd unit), not `.env`: it is expanded by the shell before Next.js loads `.env`. `HOSTNAME` is **not** read by `next start`. |
+| `PORT` | no | Port to listen on. Defaults to `3000`. |
 
 ## 2. Network exposure
 
 The admin credentials (`eadmin` / `epassword`) are fixed by design and cannot be rotated.
 The app therefore **must only be reachable from a trusted local network**:
 
-- Bind to localhost or a LAN interface (`HOSTNAME=127.0.0.1` / the LAN IP), never a public one.
+- Bind to localhost or a LAN interface (`BIND_HOST=127.0.0.1`, the default, or the LAN IP), never a public one or `0.0.0.0`.
 - Do not port-forward it or expose it to the internet.
 - If remote access is ever needed, put it behind a reverse proxy that adds its own
   authentication (e.g. VPN, or proxy basic auth/SSO) and TLS, and set `COOKIE_SECURE=true`.
@@ -162,7 +165,7 @@ SELECT name FROM sqlite_master WHERE type = 'trigger';   -- all four must be lis
 
 ## 6. Launch checklist
 
-- [ ] `.env` has a unique `SESSION_SECRET`; `NODE_ENV=production`.
+- [ ] `.env` has a unique `SESSION_SECRET` and `COOKIE_SECURE` set to `true`/`false`; `NODE_ENV=production`.
 - [ ] App bound to localhost/LAN only; not reachable from the internet.
 - [ ] `data/` is `700` and `data/emp.db` is `600`, owned by the app user.
 - [ ] Daily backup scheduled and one restore rehearsed.

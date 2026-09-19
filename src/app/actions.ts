@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { cookieSecure } from "@/lib/config";
 import { checkAdminCredentials, LOGIN_FAILED_MESSAGE } from "@/lib/credentials";
 import { currentPeriodMonth } from "@/lib/month";
 import {
@@ -37,7 +38,7 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
     store.set(SESSION_COOKIE, await signSessionId(sessionId), {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.COOKIE_SECURE === "true",
+      secure: cookieSecure(),
       path: "/",
       maxAge: SESSION_TTL_SECONDS,
     });
