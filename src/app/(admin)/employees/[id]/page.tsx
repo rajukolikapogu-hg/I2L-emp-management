@@ -6,7 +6,7 @@ import { formatPeriodMonth } from "@/lib/month";
 import { getEmployee } from "@/server/employees";
 import { listPaymentsForEmployee } from "@/server/payments";
 
-export const metadata = { title: "Payment history · Emp-management" };
+export const metadata = { title: "Payment history · Employee Management" };
 
 // Read-only payment history, most recent month first (HIST-1..HIST-4).
 export default async function EmployeeHistoryPage({

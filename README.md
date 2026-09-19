@@ -1,4 +1,4 @@
-# Emp-management
+# Employee Management
 
 A small single-admin internal tool for tracking monthly salary payments: add employees,
 see who has and hasn't been paid this month, mark salaries as paid, and review each

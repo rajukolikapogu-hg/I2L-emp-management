@@ -4,7 +4,7 @@ import { formatCents } from "@/lib/money";
 import { listEmployees } from "@/server/employees";
 import { AddEmployeeForm } from "./AddEmployeeForm";
 
-export const metadata = { title: "Employees · Emp-management" };
+export const metadata = { title: "Employees · Employee Management" };
 
 // Employee records are create-only: this page offers no edit or delete controls (EMP-3, EMP-4).
 export default async function EmployeesPage() {
