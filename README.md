@@ -75,3 +75,9 @@ docs/OPERATIONS.md   deployment, permissions, backup/restore, data correction
 See [`docs/OPERATIONS.md`](docs/OPERATIONS.md). In short: run it on one host, reachable only from a
 trusted local network (the admin credentials are fixed), with a unique `SESSION_SECRET` and
 daily backups of the SQLite file.
+
+## Pull requests
+
+PRs into `main` merge automatically (squash) once CodeRabbit has approved and the required
+`checks` and `e2e` jobs pass. If CodeRabbit requests changes, push a fix and resolve its
+comment threads; it re-reviews and approves. Draft PRs and PRs from forks are not auto-merged.
