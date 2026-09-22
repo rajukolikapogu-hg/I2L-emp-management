@@ -5,8 +5,8 @@ next-env.d.ts
 *.tsbuildinfo
 
 # Local environment and data
-.env
-.env.local
+# .env
+# .env.local
 data/*
 !data/.gitkeep
 *.db

@@ -1,0 +1,22 @@
+# Usage: put SESSION_SECRET (and optionally COOKIE_SECURE, HOST_BIND, HOST_PORT) in .env
+# next to this file or in the shell, then run `docker compose up -d --build`.
+# See docs/DOCKER.md.
+services:
+  app:
+    build: .
+    image: emp-management:latest
+    container_name: emp-management
+    init: true
+    restart: unless-stopped
+    environment:
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET (32+ random characters) in .env or the shell}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    ports:
+      # Published on localhost only by default. Set HOST_BIND to a LAN IP to serve a trusted
+      # local network; never 0.0.0.0 on an internet-facing host (see docs/OPERATIONS.md §2).
+      - "${HOST_BIND:-127.0.0.1}:${HOST_PORT:-3000}:3000"
+    volumes:
+      - emp-data:/app/data
+
+volumes:
+  emp-data:

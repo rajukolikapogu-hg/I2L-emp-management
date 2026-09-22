@@ -6,6 +6,8 @@ and deployment to a single host.
 
 ## 1. Deploying to the single host
 
+To run it as a Docker container instead, see [DOCKER.md](DOCKER.md).
+
 Requirements: Linux host, Node.js 20+ (22 recommended), a dedicated OS user (e.g. `empapp`).
 
 ```bash
