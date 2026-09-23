@@ -117,6 +117,42 @@ New packages are private. To change that, open Package settings on GitHub.
 To run a published image, replace `build: .` in `docker-compose.yml` with
 `image: ghcr.io/rajukolikapogu-hg/i2l-emp-management:<tag>`. Then run `docker compose pull && docker compose up -d`.
 
+## Deploying to the GoDaddy server
+
+`npm run docker:publish` builds the image, pushes it to ghcr.io and then runs `docker/deploy.sh`,
+which deploys it to the Ubuntu server at `200.97.162.66` over SSH. `npm run docker:deploy`
+runs only the deploy step against the local `emp-management:latest` image.
+
+```bash
+npm run docker:publish                  # build + push + deploy
+docker/publish.sh --no-push             # build + deploy, without touching ghcr.io
+docker/publish.sh --no-deploy           # build + push only
+docker/deploy.sh emp-management:latest  # deploy an already built image
+```
+
+What `deploy.sh` does:
+
+- Streams the image with `docker save | ssh docker load`, so the server never needs registry
+  credentials or a copy of the source, and retags it `emp-management:deploy`.
+- Writes `/opt/emp-management/docker-compose.yml` on the server (same as the local one, but using
+  the uploaded image instead of `build: .`).
+- On the first deploy creates `/opt/emp-management/.env` with a generated `SESSION_SECRET`,
+  `COOKIE_SECURE=false`, `HOST_BIND=0.0.0.0` and `HOST_PORT=80`. Later deploys keep that file, so
+  the secret (and therefore admin sessions) survives. Edit it on the server to change settings.
+- Runs `docker compose up -d`, waits for the health check and prints the URL.
+
+Settings: `DEPLOY_HOST` (default `200.97.162.66`), `DEPLOY_USER` (`root`), `DEPLOY_SSH_KEY`
+(`~/development/hostinger/id_ed25519`), `DEPLOY_DIR` (`/opt/emp-management`), and for the first
+`.env` only `DEPLOY_HOST_BIND`, `DEPLOY_HOST_PORT`, `DEPLOY_COOKIE_SECURE`.
+
+**Exposure warning.** Unlike the local default, the server publishes the app on all interfaces
+so that it is reachable at `http://200.97.162.66/`. The admin credentials are fixed and the
+connection is plain HTTP. Put a TLS reverse proxy (e.g. Caddy) in front of it, set
+`HOST_BIND=127.0.0.1` and `COOKIE_SECURE=true` in the server `.env`, and restrict access with a
+firewall or VPN before real data goes in. See [OPERATIONS.md §2](OPERATIONS.md#2-network-exposure).
+
+Backups on the server work as above, run from `/opt/emp-management`.
+
 ## Upgrading
 
 ```bash

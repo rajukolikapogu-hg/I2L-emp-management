@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# Build the image and push it to GitHub Container Registry (ghcr.io).
+# Build the image, push it to GitHub Container Registry (ghcr.io) and deploy it to the
+# GoDaddy server (docker/deploy.sh).
 #
-# Usage: docker/publish.sh [--allow-dirty]
+# Usage: docker/publish.sh [--allow-dirty] [--no-deploy] [--no-push]
 #
+# --no-deploy: build and push only. --no-push: build and deploy only (no ghcr.io login needed).
+# Deploy target and ssh key: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY (see docker/deploy.sh).
 # Tags pushed (clean working tree): <version from package.json>, sha-<short commit>, latest.
 # With --allow-dirty (uncommitted changes) only sha-<short commit>-dirty is pushed, so an
 # unreproducible build never becomes "latest" or a release version.
@@ -18,10 +21,14 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 allow_dirty=false
+deploy=true
+push=true
 for arg in "$@"; do
   case "$arg" in
     --allow-dirty) allow_dirty=true ;;
-    -h|--help) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --no-deploy) deploy=false ;;
+    --no-push) push=false ;;
+    -h|--help) sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
@@ -47,7 +54,7 @@ else
   tags=("$version" "sha-${sha}" "latest")
 fi
 
-if [ -n "${GHCR_TOKEN:-}" ]; then
+if [ "$push" = true ] && [ -n "${GHCR_TOKEN:-}" ]; then
   printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USER:-$owner}" --password-stdin
 fi
 
@@ -63,9 +70,14 @@ docker build "${tag_args[@]}" \
   --label "org.opencontainers.image.description=Employee Management" \
   .
 
-for t in "${tags[@]}"; do
-  docker push "$image:$t"
-done
+if [ "$push" = true ]; then
+  for t in "${tags[@]}"; do
+    docker push "$image:$t"
+  done
+  echo "Pushed:"
+  for t in "${tags[@]}"; do echo "  $image:$t"; done
+fi
 
-echo "Pushed:"
-for t in "${tags[@]}"; do echo "  $image:$t"; done
+if [ "$deploy" = true ]; then
+  docker/deploy.sh "$image:${tags[0]}"
+fi

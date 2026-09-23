@@ -10,6 +10,7 @@
     "db:migrate": "prisma migrate deploy && node scripts/secure-db.mjs",
     "db:secure": "node scripts/secure-db.mjs",
     "docker:publish": "docker/publish.sh",
+    "docker:deploy": "docker/deploy.sh",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
