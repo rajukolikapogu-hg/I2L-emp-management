@@ -66,8 +66,10 @@ tag_args=()
 for t in "${tags[@]}"; do tag_args+=(-t "$image:$t"); done
 
 echo "Building $image (${tags[*]})"
-# The source label links the package to the repository on GitHub.
-docker build "${tag_args[@]}" \
+# The source label connects the ghcr.io package to the repository (it then shows under the
+# repository's Packages). --provenance=false: by default buildx wraps the image in an index with
+# an attestation, and ghcr.io does not read the labels through that index, so the link is lost.
+docker build "${tag_args[@]}" --provenance=false \
   --label "org.opencontainers.image.source=https://github.com/$repo_path" \
   --label "org.opencontainers.image.revision=$revision" \
   --label "org.opencontainers.image.version=$version" \

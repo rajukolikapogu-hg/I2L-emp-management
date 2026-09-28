@@ -114,6 +114,12 @@ docker/publish.sh
 - `GHCR_IMAGE` overrides the image name.
 
 New packages are private. To change that, open Package settings on GitHub.
+
+ghcr.io packages always belong to the account (`github.com/<owner>?tab=packages`). The image's
+`org.opencontainers.image.source` label connects the package to this repository, so it also shows
+under the repository's Packages. The build uses `--provenance=false` because ghcr.io does not read
+that label through the attestation index that buildx creates by default. A package pushed before
+that change can be connected once by hand: Package settings → Connect repository.
 To run a published image, replace `build: .` in `docker-compose.yml` with
 `image: ghcr.io/rajukolikapogu-hg/i2l-emp-management:<tag>`. Then run `docker compose pull && docker compose up -d`.
 
