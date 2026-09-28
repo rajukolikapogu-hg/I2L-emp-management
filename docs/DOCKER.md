@@ -117,17 +117,21 @@ New packages are private. To change that, open Package settings on GitHub.
 To run a published image, replace `build: .` in `docker-compose.yml` with
 `image: ghcr.io/rajukolikapogu-hg/i2l-emp-management:<tag>`. Then run `docker compose pull && docker compose up -d`.
 
-## Deploying to the GoDaddy server
+## Deploying to the Hostinger server
 
-`npm run docker:publish` builds the image, pushes it to ghcr.io and then runs `docker/deploy.sh`,
-which deploys it to the Ubuntu server at `200.97.162.66` over SSH. `npm run docker:deploy`
-runs only the deploy step against the local `emp-management:latest` image.
+`npm run docker:publish` builds the image, pushes it to ghcr.io, runs `docker/deploy.sh` (deploys
+to the Ubuntu server at `200.97.162.66` over SSH) and then `docker/verify-site.sh`, which checks
+that <https://empmanagement.idea2launch.dev/login> answers 200 with the app title and that
+`http://` redirects to `https://`. `npm run docker:deploy` runs only the deploy step against the
+local `emp-management:latest` image.
 
 ```bash
-npm run docker:publish                  # build + push + deploy
-docker/publish.sh --no-push             # build + deploy, without touching ghcr.io
+npm run docker:publish                  # build + push + deploy + verify
+docker/publish.sh --no-push             # build + deploy + verify, without touching ghcr.io
 docker/publish.sh --no-deploy           # build + push only
+docker/publish.sh --no-verify           # skip the public-site check
 docker/deploy.sh emp-management:latest  # deploy an already built image
+npm run docker:verify                   # only the public-site check (DEPLOY_PUBLIC_URL overrides the URL)
 ```
 
 What `deploy.sh` does:
@@ -137,21 +141,51 @@ What `deploy.sh` does:
 - Writes `/opt/emp-management/docker-compose.yml` on the server (same as the local one, but using
   the uploaded image instead of `build: .`).
 - On the first deploy creates `/opt/emp-management/.env` with a generated `SESSION_SECRET`,
-  `COOKIE_SECURE=false`, `HOST_BIND=0.0.0.0` and `HOST_PORT=80`. Later deploys keep that file, so
-  the secret (and therefore admin sessions) survives. Edit it on the server to change settings.
-- Runs `docker compose up -d`, waits for the health check and prints the URL.
+  `COOKIE_SECURE=true`, `HOST_BIND=127.0.0.1` and `HOST_PORT=3000`. Later deploys keep that file,
+  so the secret (and therefore admin sessions) survives. Edit it on the server to change settings.
+- Runs `docker compose up -d`, waits for the health check and prints where the container listens.
 
 Settings: `DEPLOY_HOST` (default `200.97.162.66`), `DEPLOY_USER` (`root`), `DEPLOY_SSH_KEY`
 (`~/development/hostinger/id_ed25519`), `DEPLOY_DIR` (`/opt/emp-management`), and for the first
 `.env` only `DEPLOY_HOST_BIND`, `DEPLOY_HOST_PORT`, `DEPLOY_COOKIE_SECURE`.
 
-**Exposure warning.** Unlike the local default, the server publishes the app on all interfaces
-so that it is reachable at `http://200.97.162.66/`. The admin credentials are fixed and the
-connection is plain HTTP. Put a TLS reverse proxy (e.g. Caddy) in front of it, set
-`HOST_BIND=127.0.0.1` and `COOKIE_SECURE=true` in the server `.env`, and restrict access with a
-firewall or VPN before real data goes in. See [OPERATIONS.md §2](OPERATIONS.md#2-network-exposure).
+The container is published on `127.0.0.1:3000` only. nginx on the server terminates TLS and
+proxies the public host name to it (next section). The admin credentials are fixed, so still
+restrict who can reach the site (see [OPERATIONS.md §2](OPERATIONS.md#2-network-exposure)).
 
 Backups on the server work as above, run from `/opt/emp-management`.
+
+## Public host name: Cloudflare DNS + nginx + Let's Encrypt (once per app)
+
+`docker/setup-site.sh` (or `npm run docker:setup-site`) makes a deployed container reachable at
+its own HTTPS host name. The server hosts several sites: nginx owns ports 80/443 and each site is
+one file in `/etc/nginx/sites-available/`, proxying to that app's localhost port.
+
+```bash
+export CF_API_TOKEN=...            # Cloudflare token: Zone:DNS:Edit + Zone:Zone:Read on the zone
+export CF_ACCOUNT_ID=...           # optional
+npm run docker:setup-site          # this app: empmanagement.idea2launch.dev -> 127.0.0.1:3000
+
+# Next app on the same server (deploy it first, on its own port):
+SITE_DOMAIN=other.idea2launch.dev SITE_APP=other-app SITE_UPSTREAM_PORT=3001 docker/setup-site.sh
+```
+
+Steps, each skipped when already done, so re-running finishes an interrupted run:
+
+1. Creates or updates the Cloudflare A record `SITE_DOMAIN -> DEPLOY_HOST`. Default `CF_PROXIED=false`
+   (DNS only). With `CF_PROXIED=true` the zone's SSL/TLS mode must
+   be Full (strict). `--skip-dns` if the record is managed elsewhere.
+2. Sets `HOST_BIND=127.0.0.1` / `HOST_PORT=SITE_UPSTREAM_PORT` in the server `.env` and recreates the
+   container, installs `nginx`, `certbot` and `ssl-cert` if missing, writes a catch-all default
+   server (unknown host names get the connection closed) and the site's HTTP server block.
+3. Waits until the name resolves (`DNS_TIMEOUT`, default 300 s), proves the request reaches nginx,
+   gets a certificate with `certbot certonly --webroot` (`LETSENCRYPT_EMAIL`, default git
+   `user.email`; `certbot.timer` renews it and reloads nginx), rewrites the site block with HTTPS
+   plus an HTTP redirect and HSTS, and sets `COOKIE_SECURE=true` for the app.
+4. Runs `docker/verify-site.sh https://SITE_DOMAIN`.
+
+Note that `.dev` is on the browsers' HSTS preload list, so browsers only ever open
+`*.idea2launch.dev` over HTTPS. A subdomain without a certificate is not reachable.
 
 ## Upgrading
 

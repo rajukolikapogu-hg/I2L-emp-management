@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy a locally built image to the GoDaddy Ubuntu server over SSH and (re)start it there.
+# Deploy a locally built image to the Hostinger Ubuntu server over SSH and (re)start it there.
 #
 # Usage: docker/deploy.sh [<image>:<tag>]     (default: emp-management:latest)
 #
@@ -13,10 +13,11 @@
 #   DEPLOY_USER       ssh user                 (default root)
 #   DEPLOY_SSH_KEY    ssh private key          (default ~/development/hostinger/id_ed25519)
 #   DEPLOY_DIR        directory on the server  (default /opt/emp-management)
-#   DEPLOY_HOST_BIND  interface published on the server (default 0.0.0.0, see docs/DOCKER.md)
-#   DEPLOY_HOST_PORT  port published on the server      (default 80)
-#   DEPLOY_COOKIE_SECURE  "true" once the app is behind HTTPS (default false)
-# The bind/port/cookie values are only applied when the server .env is first created.
+#   DEPLOY_HOST_BIND  interface published on the server (default 127.0.0.1: nginx in front)
+#   DEPLOY_HOST_PORT  port published on the server      (default 3000)
+#   DEPLOY_COOKIE_SECURE  "true" when the app is served over HTTPS (default true)
+# The bind/port/cookie values are only applied when the server .env is first created;
+# docker/setup-site.sh sets them when it puts nginx + HTTPS in front of the container.
 # See docs/DOCKER.md.
 set -euo pipefail
 
@@ -31,9 +32,9 @@ host=${DEPLOY_HOST:-200.97.162.66}
 user=${DEPLOY_USER:-root}
 key=${DEPLOY_SSH_KEY:-$HOME/development/hostinger/id_ed25519}
 dir=${DEPLOY_DIR:-/opt/emp-management}
-host_bind=${DEPLOY_HOST_BIND:-0.0.0.0}
-host_port=${DEPLOY_HOST_PORT:-80}
-cookie_secure=${DEPLOY_COOKIE_SECURE:-false}
+host_bind=${DEPLOY_HOST_BIND:-127.0.0.1}
+host_port=${DEPLOY_HOST_PORT:-3000}
+cookie_secure=${DEPLOY_COOKIE_SECURE:-true}
 
 if ! docker image inspect "$image" >/dev/null 2>&1; then
   echo "Image $image not found locally. Build it first (docker/publish.sh or docker compose build)." >&2
@@ -98,5 +99,5 @@ if [ "$status" != healthy ]; then
 fi
 
 remote "docker image prune -f >/dev/null"
-published=$(remote "cd '$dir' && sed -n 's/^HOST_PORT=//p' .env")
-echo "Deployed $image to $host: http://$host:${published:-3000}"
+published=$(remote "cd '$dir' && sed -n 's/^HOST_BIND=//p; s/^HOST_PORT=//p' .env | paste -sd:")
+echo "Deployed $image to $host (container published on ${published:-127.0.0.1:3000})"

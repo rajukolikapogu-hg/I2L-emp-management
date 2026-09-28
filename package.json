@@ -11,6 +11,8 @@
     "db:secure": "node scripts/secure-db.mjs",
     "docker:publish": "docker/publish.sh",
     "docker:deploy": "docker/deploy.sh",
+    "docker:setup-site": "docker/setup-site.sh",
+    "docker:verify": "docker/verify-site.sh",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",

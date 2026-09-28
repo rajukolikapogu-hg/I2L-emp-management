@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# Build the image, push it to GitHub Container Registry (ghcr.io) and deploy it to the
-# GoDaddy server (docker/deploy.sh).
+# Build the image, push it to GitHub Container Registry (ghcr.io), deploy it to the Hostinger
+# server (docker/deploy.sh) and verify the public site (docker/verify-site.sh).
 #
-# Usage: docker/publish.sh [--allow-dirty] [--no-deploy] [--no-push]
+# Usage: docker/publish.sh [--allow-dirty] [--no-deploy] [--no-push] [--no-verify]
 #
 # --no-deploy: build and push only. --no-push: build and deploy only (no ghcr.io login needed).
+# --no-verify: skip the check that DEPLOY_PUBLIC_URL (default https://empmanagement.idea2launch.dev)
+# serves the login page after the deploy.
 # Deploy target and ssh key: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY (see docker/deploy.sh).
 # Tags pushed (clean working tree): <version from package.json>, sha-<short commit>, latest.
 # With --allow-dirty (uncommitted changes) only sha-<short commit>-dirty is pushed, so an
@@ -23,12 +25,14 @@ cd "$(dirname "$0")/.."
 allow_dirty=false
 deploy=true
 push=true
+verify=true
 for arg in "$@"; do
   case "$arg" in
     --allow-dirty) allow_dirty=true ;;
     --no-deploy) deploy=false ;;
     --no-push) push=false ;;
-    -h|--help) sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --no-verify) verify=false ;;
+    -h|--help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
@@ -80,4 +84,8 @@ fi
 
 if [ "$deploy" = true ]; then
   docker/deploy.sh "$image:${tags[0]}"
+  if [ "$verify" = true ]; then
+    echo "Verifying the public site"
+    docker/verify-site.sh
+  fi
 fi
