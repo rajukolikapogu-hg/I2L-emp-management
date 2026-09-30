@@ -50,15 +50,22 @@ GitHub only offers `workflow_dispatch` for workflows on the **default branch**. 
 Create a key used only by the workflow. Don't reuse your laptop key.
 
 ```bash
-ssh-keygen -t ed25519 -N '' -C 'emp-management prod deploy (GitHub Actions)' -f ./prod_deploy_key
+mkdir -p ~/development/hostinger/emp-management-prod && cd ~/development/hostinger/emp-management-prod
+# key pair: emp-management-prod-deploy-key (private) + emp-management-prod-deploy-key.pub (public)
+ssh-keygen -t ed25519 -N '' -C 'emp-management-prod deploy (GitHub Actions)' \
+  -f ./emp-management-prod-deploy-key
 # authorize it on the server (uses your existing Hostinger key)
 ssh -i ~/development/hostinger/id_ed25519 root@200.97.162.66 \
-  'mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys' < ./prod_deploy_key.pub
+  'mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys' < ./emp-management-prod-deploy-key.pub
+# check it works: prints "ok"
+ssh -i ./emp-management-prod-deploy-key root@200.97.162.66 'echo ok'
 # the server's host key, for strict checking in CI
-ssh-keyscan -t ed25519,rsa,ecdsa 200.97.162.66 > ./prod_known_hosts
+ssh-keyscan -t ed25519,rsa,ecdsa 200.97.162.66 > ./emp-management-prod-known-hosts
 ```
 
-After step 4, delete the two local files: `rm prod_deploy_key prod_deploy_key.pub prod_known_hosts`.
+After step 4, delete the local folder: `rm -rf ~/development/hostinger/emp-management-prod`. The
+server entry is recognizable in `~/.ssh/authorized_keys` by its comment,
+`emp-management-prod deploy (GitHub Actions)`, which is how you find and remove it later.
 
 ### 3. Create the `production` environment
 
@@ -75,8 +82,8 @@ In the same page, under **Environment secrets → Add environment secret**:
 
 | Secret | Value | Required |
 |---|---|---|
-| `PROD_SSH_KEY` | the full contents of `prod_deploy_key`, including the `BEGIN`/`END` lines | yes |
-| `PROD_KNOWN_HOSTS` | the full contents of `prod_known_hosts` | yes |
+| `PROD_SSH_KEY` | the full contents of `emp-management-prod-deploy-key`, including the `BEGIN`/`END` lines | yes |
+| `PROD_KNOWN_HOSTS` | the full contents of `emp-management-prod-known-hosts` | yes |
 | `GHCR_PULL_TOKEN` | classic PAT with `read:packages`. Only needed if step 6 is not possible | no |
 
 ### 5. Environment variables
