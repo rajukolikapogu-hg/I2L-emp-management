@@ -1,6 +1,6 @@
 {
   "name": "emp-management",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Single-admin internal tool for tracking monthly salary payments",
   "scripts": {
