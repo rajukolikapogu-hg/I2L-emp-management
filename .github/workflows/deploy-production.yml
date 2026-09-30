@@ -1,0 +1,149 @@
+name: Deploy to production
+
+# Started by Idea2Launch when the project owner clicks "Deploy to production" in the Test Build
+# tab (it can also be run by hand from the Actions tab). Releases one image that is already on
+# ghcr.io, pinned by digest, with docker/prod-release.sh. The test-build site is not touched.
+#
+# The run name carries request_id: Idea2Launch finds its run by it. Keep it in the name.
+# Setup (environment "production", secrets and variables): docs/PROD_DEPLOY.md.
+run-name: "Deploy ${{ inputs.tag }} to production [${{ inputs.request_id }}]"
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Image without a tag, e.g. ghcr.io/owner/i2l-emp-management"
+        required: true
+        type: string
+      digest:
+        description: "Exact build to release: sha256:…"
+        required: true
+        type: string
+      tag:
+        description: "Version tag the build is known by, e.g. 1.0.0 or sha-70b49dd"
+        required: true
+        type: string
+      request_id:
+        description: "Set by Idea2Launch to track the run"
+        required: false
+        default: manual
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+# One production deploy at a time; a second click waits for the first instead of cancelling it.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ vars.PROD_PUBLIC_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Inputs reach the shell through env, never through ${{ }} inside `run`, so a crafted input
+      # cannot inject commands.
+      - name: Check the request
+        env:
+          IMAGE: ${{ inputs.image }}
+          DIGEST: ${{ inputs.digest }}
+          TAG: ${{ inputs.tag }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          owner=$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')
+          case "$IMAGE" in
+            "ghcr.io/$owner/"*) ;;
+            *) echo "::error::Image must belong to ghcr.io/$owner (got $IMAGE)"; exit 1 ;;
+          esac
+          [[ $DIGEST =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "::error::Bad digest: $DIGEST"; exit 1; }
+          [[ $TAG != *-dirty ]] || { echo "::error::-dirty builds are never deployed to production"; exit 1; }
+
+      - name: Check the environment settings
+        env:
+          PROD_HOST: ${{ vars.PROD_HOST }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          PROD_KNOWN_HOSTS: ${{ secrets.PROD_KNOWN_HOSTS }}
+        run: |
+          missing=()
+          [ -n "$PROD_HOST" ] || missing+=("variable PROD_HOST")
+          [ -n "$PROD_SSH_KEY" ] || missing+=("secret PROD_SSH_KEY")
+          [ -n "$PROD_KNOWN_HOSTS" ] || missing+=("secret PROD_KNOWN_HOSTS")
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Environment 'production' is missing: ${missing[*]} (docs/PROD_DEPLOY.md)"
+            exit 1
+          fi
+
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+          GHCR_PULL_USER: ${{ vars.GHCR_PULL_USER || github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          # GHCR_PULL_TOKEN is only needed when the package does not grant this repository access
+          # (Package settings -> Manage Actions access). Otherwise the workflow token is enough.
+          if [ -n "$GHCR_PULL_TOKEN" ]; then
+            printf '%s' "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_PULL_USER" --password-stdin
+          else
+            printf '%s' "$GITHUB_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          fi
+
+      - name: Install the ssh key
+        env:
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          PROD_KNOWN_HOSTS: ${{ secrets.PROD_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$PROD_SSH_KEY" > ~/.ssh/prod_deploy
+          printf '%s\n' "$PROD_KNOWN_HOSTS" > ~/.ssh/prod_known_hosts
+          chmod 600 ~/.ssh/prod_deploy ~/.ssh/prod_known_hosts
+
+      - name: Release to production
+        env:
+          IMAGE: ${{ inputs.image }}
+          DIGEST: ${{ inputs.digest }}
+          TAG: ${{ inputs.tag }}
+          PROD_HOST: ${{ vars.PROD_HOST }}
+          PROD_USER: ${{ vars.PROD_USER || 'root' }}
+          PROD_APP: ${{ vars.PROD_APP || 'emp-management-prod' }}
+          PROD_DIR: ${{ vars.PROD_DIR }}
+          PROD_PORT: ${{ vars.PROD_PORT || '3001' }}
+          PROD_PUBLIC_URL: ${{ vars.PROD_PUBLIC_URL }}
+        run: |
+          set -euo pipefail
+          export PROD_SSH_KEY=~/.ssh/prod_deploy PROD_KNOWN_HOSTS=~/.ssh/prod_known_hosts
+          [ -n "$PROD_DIR" ] || unset PROD_DIR
+          docker/prod-release.sh "$IMAGE" "$DIGEST" "$TAG"
+
+      - name: Summary
+        if: always()
+        env:
+          IMAGE: ${{ inputs.image }}
+          DIGEST: ${{ inputs.digest }}
+          TAG: ${{ inputs.tag }}
+          URL: ${{ vars.PROD_PUBLIC_URL }}
+          OUTCOME: ${{ job.status }}
+        run: |
+          {
+            echo "### Production deploy: $OUTCOME"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Version | \`$TAG\` |"
+            echo "| Image | \`$IMAGE@$DIGEST\` |"
+            echo "| Site | ${URL:-not set} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the ssh key
+        if: always()
+        run: rm -f ~/.ssh/prod_deploy ~/.ssh/prod_known_hosts
