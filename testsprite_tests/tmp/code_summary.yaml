@@ -1,0 +1,159 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - Next.js 15 (App Router, React Server Components, Server Actions)
+  - React 19
+  - Tailwind CSS 4
+  - Prisma 6 ORM
+  - SQLite
+  - Web Crypto HMAC-SHA256 signed session cookies
+routes:
+  - path: /
+    file: src/app/page.tsx
+    auth_required: true
+    description: Redirects to /monthly (and to /login when not signed in)
+  - path: /login
+    file: src/app/login/page.tsx
+    auth_required: false
+    description: Admin sign-in page with username and password; redirects to /monthly if already signed in
+  - path: /monthly
+    file: src/app/(admin)/monthly/page.tsx
+    auth_required: true
+    description: Current month's paid/unpaid status for every employee, with a Mark as paid action per unpaid employee; no totals or summary metrics
+  - path: /employees
+    file: src/app/(admin)/employees/page.tsx
+    auth_required: true
+    description: Employee list (name, designation, date of birth, salary) and a create-only Add employee form; no edit or delete controls
+  - path: /employees/[id]
+    file: src/app/(admin)/employees/[id]/page.tsx
+    auth_required: true
+    description: Read-only employee details and payment history, most recent month first; unknown or invalid ids return 404
+features:
+  - name: Admin Login
+    description: Single fixed admin account (username eadmin, password epassword). A failed attempt shows one generic message that does not reveal which field was wrong. Success sets an HTTP-only signed session cookie and redirects to /monthly.
+    files:
+      - src/app/login/page.tsx
+      - src/app/login/LoginForm.tsx
+      - src/app/actions.ts
+      - src/lib/credentials.ts
+      - src/lib/session-token.ts
+    entry_route: /login
+    user_interactions:
+      - Fill Username input field
+      - Fill Password input field
+      - Click Sign in button to submit
+      - See alert "Invalid username or password." on wrong username, wrong password or empty fields
+      - Land on /monthly after successful sign-in
+    api_calls:
+      - method: POST
+        endpoint: /login (Next.js server action "login")
+    auth_required: false
+  - name: Route Protection and Logout
+    description: Middleware redirects unauthenticated GET requests for any protected page to /login and answers non-GET requests without a valid session with 401. Tampered or unsigned cookies are rejected. Log out deletes the server-side session and clears the cookie, so a replayed old cookie is refused. PUT, PATCH and DELETE return 405 on every route.
+    files:
+      - src/middleware.ts
+      - src/server/auth.ts
+      - src/server/sessions.ts
+      - src/app/(admin)/layout.tsx
+      - src/app/actions.ts
+    entry_route: /monthly
+    user_interactions:
+      - Visit /monthly, /employees or /employees/1 without signing in and get redirected to /login
+      - Click Log out button in the header and get redirected to /login
+      - Try to visit /monthly after logging out and get redirected to /login
+    api_calls:
+      - method: POST
+        endpoint: /monthly (Next.js server action "logout")
+    auth_required: true
+  - name: Navigation
+    description: Header shows the product name "Employee Management", nav links "Monthly view" and "Employees" with the current page marked, and a Log out button.
+    files:
+      - src/app/(admin)/layout.tsx
+      - src/components/NavLink.tsx
+    entry_route: /monthly
+    user_interactions:
+      - Click Monthly view nav link
+      - Click Employees nav link
+    api_calls: []
+    auth_required: true
+  - name: Add Employee (create-only)
+    description: Form with Name, Designation, Date of birth and Monthly salary. Server-side validation shows per-field errors and keeps the entered values. On success shows "<name> was added." and the employee appears in the list. Employees can never be edited or deleted.
+    files:
+      - src/app/(admin)/employees/page.tsx
+      - src/app/(admin)/employees/AddEmployeeForm.tsx
+      - src/app/actions.ts
+      - src/lib/validation.ts
+      - src/server/employees.ts
+    entry_route: /employees
+    user_interactions:
+      - Fill Name input (required, max length enforced)
+      - Fill Designation input (required, max length enforced)
+      - Fill Date of birth date input (required, must be a valid date in the past)
+      - Fill Monthly salary input (required, number greater than zero with at most 2 decimal places)
+      - Click Add employee button
+      - See success status message "<name> was added." and the new row in the Employees table
+      - See field errors such as "Name is required.", "Date of birth must be in the past.", "Salary must be greater than zero.", "Salary must be a number with at most 2 decimal places."
+      - Confirm no edit or delete controls exist for employees
+    api_calls:
+      - method: POST
+        endpoint: /employees (Next.js server action "addEmployee")
+    auth_required: true
+  - name: Monthly Payment Status
+    description: Heading shows the current month (e.g. "September 2026"). Table lists every employee with salary and a Paid/Unpaid status badge. Empty state links to /employees. No totals or summary metrics are shown.
+    files:
+      - src/app/(admin)/monthly/page.tsx
+      - src/components/StatusBadge.tsx
+      - src/server/payments.ts
+    entry_route: /monthly
+    user_interactions:
+      - View each employee's Paid or Unpaid status for the current month
+      - Click an employee name to open their payment history
+      - Click "Add an employee" link in the empty state
+    api_calls: []
+    auth_required: true
+  - name: Mark Salary as Paid
+    description: For an unpaid employee, "Mark as paid" opens an inline form. The Amount is prefilled with the employee's salary and is read-only. The Payment date is required and cannot be in the future. Saving records exactly one payment for the employee for the current month (unique per employee per month); the row then shows "Paid on <date>". Cancel closes the form. Payments can never be edited or deleted.
+    files:
+      - src/app/(admin)/monthly/MarkPaidForm.tsx
+      - src/app/actions.ts
+      - src/lib/validation.ts
+      - src/server/payments.ts
+    entry_route: /monthly
+    user_interactions:
+      - Click "Mark as paid" button on an unpaid employee row
+      - See read-only Amount prefilled with the employee's salary
+      - Fill Payment date input (required, not in the future)
+      - Click Save payment button
+      - See the row switch to Paid with "Paid on <date>"
+      - See error "Payment date is required." when submitting without a date
+      - Click Cancel to close the form without saving
+    api_calls:
+      - method: POST
+        endpoint: /monthly (Next.js server action "markPaid")
+    auth_required: true
+  - name: Payment History
+    description: Read-only page per employee showing designation, date of birth and monthly salary, and a table of payments (Month, Amount, Payment date), most recent month first. Shows "No payments recorded yet." when empty. Unknown ids show a 404 page.
+    files:
+      - src/app/(admin)/employees/[id]/page.tsx
+      - src/server/payments.ts
+      - src/app/not-found.tsx
+    entry_route: /employees/[id]
+    user_interactions:
+      - Open an employee from the Employees list or the Monthly view
+      - View payment history rows (month, amount, payment date)
+      - See empty state "No payments recorded yet." for an employee without payments
+      - Click "← All employees" link to go back
+      - Visit /employees/999999 and see a not found page
+    api_calls: []
+    auth_required: true
+known_limitations:
+  - issue: Payments can only be recorded for the current calendar month (server timezone); past months are view-only by design
+    location: src/app/actions.ts
+    impact: Tests cannot record payments for earlier months through the UI
+  - issue: Employees and payments are create/read only by design (enforced by SQLite triggers and 405 for PUT/PATCH/DELETE)
+    location: prisma/migrations, src/middleware.ts
+    impact: Test data accumulates; tests should create uniquely named employees instead of editing or deleting existing ones
+  - issue: Single fixed admin credential pair (eadmin / epassword); there is no registration or password reset
+    location: src/lib/credentials.ts
+    impact: No sign-up or account management flows exist to test

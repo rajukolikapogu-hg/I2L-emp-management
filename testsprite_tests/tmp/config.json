@@ -1,0 +1,21 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3001/login",
+  "loginUser": "eadmin",
+  "loginPassword": "epassword",
+  "executionArgs": {
+    "projectName": "I2L-emp-management",
+    "projectPath": "/home/raju-k/development/code/projects/I2L-emp-management",
+    "testIds": [
+      "TC013"
+    ],
+    "additionalInstruction": "Rerun TC013 only. The test plan step was corrected: Date of birth is a native date input that cannot hold non-date text, so use a future date (2099-01-01) and expect \"Date of birth must be in the past.\" and \"Salary must be a number with at most 2 decimal places.\" below the fields, with all entered values preserved.",
+    "serverMode": "production",
+    "envs": {},
+    "envsFile": "/home/raju-k/.testsprite/mcp/session-5fdd9a7bb173c752.json"
+  },
+  "serverPort": 38003,
+  "projectKey": "f8f85a45-1097-4841-ac25-4824a2e5a71f"
+}

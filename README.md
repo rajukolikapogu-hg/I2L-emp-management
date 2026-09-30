@@ -57,6 +57,7 @@ scripts/secure-db.mjs  restricts the SQLite file to the app user
 tests/unit, tests/integration   Vitest (integration uses a disposable SQLite file)
 e2e/                 Playwright end-to-end, security and accessibility checks
 docs/OPERATIONS.md   deployment, permissions, backup/restore, data correction
+docs/DOCKER.md       running as a Docker container (Dockerfile, docker-compose.yml)
 ```
 
 ## Scripts
@@ -75,6 +76,9 @@ docs/OPERATIONS.md   deployment, permissions, backup/restore, data correction
 See [`docs/OPERATIONS.md`](docs/OPERATIONS.md). In short: run it on one host, reachable only from a
 trusted local network (the admin credentials are fixed), with a unique `SESSION_SECRET` and
 daily backups of the SQLite file.
+
+To run it as a Docker container instead, see [`docs/DOCKER.md`](docs/DOCKER.md):
+`docker compose up -d --build` with `SESSION_SECRET` set in `.env`.
 
 ## Pull requests
 
