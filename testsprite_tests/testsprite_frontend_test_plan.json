@@ -1,0 +1,710 @@
+[
+  {
+    "id": "TC001",
+    "title": "Sign in and reach the monthly dashboard",
+    "description": "Verifies that the admin can sign in with valid credentials and land on the current-month salary status view.",
+    "category": "Admin Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the monthly dashboard is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify employee salary statuses are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Mark an employee as paid for the current month",
+    "description": "Verifies that an unpaid employee can be marked paid with a valid payment date and the monthly status updates accordingly.",
+    "category": "Monthly Salary Status Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the monthly dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Click the mark as paid control for an unpaid employee"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a valid payment date into the payment date field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the payment form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the employee is marked paid"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the payment date is shown in the monthly status table"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Sign in and reach the monthly status view",
+    "description": "This verifies that an admin can sign in and land on the monthly salary status dashboard.",
+    "category": "Monthly Salary Status",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign in form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the current month salary status view is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Log out and block access to protected pages",
+    "description": "Verifies that signing out ends the session and protected pages are no longer accessible afterward.",
+    "category": "Navigation and Session Access",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the account menu or sign-out control"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the monthly dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the sign-in page is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Protect monthly view without an active session",
+    "description": "Verifies that an unauthenticated visitor cannot access the monthly dashboard and is redirected to sign in.",
+    "category": "Navigation and Session Access",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /monthly"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the sign-in page is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Create a new employee and see it appear in payroll views",
+    "description": "This verifies that an admin can add a new employee from the employee list and then find that employee in both the list and monthly status view as unpaid.",
+    "category": "Monthly Salary Status",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to the employees list"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new employee"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the employee name with a unique value"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the designation field with a valid value"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the date of birth field with a valid date"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the salary field with a valid number"
+      },
+      {
+        "type": "action",
+        "description": "Submit the employee form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to the monthly status view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new employee appears in the employee list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new employee appears in the monthly status view as unpaid"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Move between monthly view and employee list after sign-in",
+    "description": "Verifies that an authenticated admin can use the header navigation to switch between the monthly dashboard and the employee list while staying signed in.",
+    "category": "Navigation and Session Access",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the employee list"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the monthly dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the monthly dashboard is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user remains authenticated"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Create a new employee from the employee list",
+    "description": "Verifies that an admin can add a new employee and see the new record appear in the employee list with a success confirmation.",
+    "category": "Add Employee",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the employee list"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the name field with Test Employee Alpha"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the designation field with Analyst"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a valid date of birth into the date of birth field"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the monthly salary field with 50000"
+      },
+      {
+        "type": "action",
+        "description": "Submit the employee form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a success confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new employee appears in the employee list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Reject invalid sign-in credentials",
+    "description": "Verifies that incorrect login credentials are rejected with a generic authentication error.",
+    "category": "Admin Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with invalid-user"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with invalid-password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an invalid username or password message is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Move between monthly and employee views while signed in",
+    "description": "This verifies that the header navigation lets an authenticated admin switch between the monthly view and employee list without losing the session.",
+    "category": "Monthly Salary Status",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to the employees list"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to the monthly status view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the monthly status view is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user remains authenticated"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Review an employee profile and payment history",
+    "description": "Verifies that an admin can open an employee profile and see read-only details along with the payment history section.",
+    "category": "Viewing Employee Payment History",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the employee list"
+      },
+      {
+        "type": "action",
+        "description": "Click an employee record to open the profile"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify read-only employee details are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the payment history section is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "View a newly added employee from the monthly dashboard",
+    "description": "Verifies that after creating an employee, the monthly dashboard shows the employee with an unpaid current-month status.",
+    "category": "Add Employee",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the employee list"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the name field with Test Employee Beta"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the designation field with Coordinator"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a valid date of birth into the date of birth field"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the monthly salary field with 60000"
+      },
+      {
+        "type": "action",
+        "description": "Submit the employee form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the monthly dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new employee appears in the monthly status table"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the employee is marked unpaid"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Show validation errors when creating an incomplete employee",
+    "description": "Verifies that required employee fields and invalid values are rejected with field-level validation while preserving user input.",
+    "category": "Add Employee",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the employee list"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the name field with TC013 Validation Employee"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the designation field with QA Candidate"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a future date of birth (2099-01-01) into the date of birth field. It is a native date input, so non-date text such as \"not-a-date\" cannot be entered at all"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the monthly salary field with not-a-number"
+      },
+      {
+        "type": "action",
+        "description": "Submit the employee form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the field-level errors \"Date of birth must be in the past.\" and \"Salary must be a number with at most 2 decimal places.\" are visible below their fields"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the name, designation, date of birth (2099-01-01) and monthly salary (not-a-number) inputs still contain the entered values"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC014",
+    "title": "Reject saving a payment without a payment date",
+    "description": "This verifies that the payment form requires a payment date before an unpaid employee can be marked as paid.",
+    "category": "Mark Salary as Paid",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to the monthly status view"
+      },
+      {
+        "type": "action",
+        "description": "Open the pay form for an unpaid employee"
+      },
+      {
+        "type": "action",
+        "description": "Save the payment without entering a payment date"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a payment date validation error is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the employee remains unpaid"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC015",
+    "title": "Show an empty payment history for a new employee",
+    "description": "Verifies that a newly created employee profile shows an empty payment history state when no payments exist.",
+    "category": "Viewing Employee Payment History",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to open the employee list"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the name field with Test Employee Gamma"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the designation field with Intern"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a valid date of birth into the date of birth field"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the monthly salary field with 30000"
+      },
+      {
+        "type": "action",
+        "description": "Submit the employee form"
+      },
+      {
+        "type": "action",
+        "description": "Click the newly created employee record to open the profile"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the employee profile is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty payment history state is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC016",
+    "title": "Cancel payment entry without changing payroll status",
+    "description": "This verifies that canceling the pay form returns to the monthly list without recording a payment.",
+    "category": "Mark Salary as Paid",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the username field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign in form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to the monthly status view"
+      },
+      {
+        "type": "action",
+        "description": "Open the pay form for an unpaid employee"
+      },
+      {
+        "type": "action",
+        "description": "Cancel the payment form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the monthly status view is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the employee remains unpaid"
+      }
+    ],
+    "priority": "Low"
+  }
+]
